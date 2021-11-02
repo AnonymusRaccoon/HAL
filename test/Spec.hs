@@ -1,11 +1,12 @@
 import Test.HUnit
 import System.Exit ( exitFailure, exitSuccess )
+import BasicParser
 
-test1 :: Test
-test1 = TestCase (assertEqual "for (foo 3)," (1,3) (1, 3))
+charTest :: Test
+charTest = TestCase (assertEqual "char '123'," (Just '1', "23") (parse char "123"))
 
 tests :: Test
-tests = TestList [TestLabel "test1" test1]
+tests = TestList [TestLabel "Basic parser char" charTest]
 
 main :: IO ()
 main = do
