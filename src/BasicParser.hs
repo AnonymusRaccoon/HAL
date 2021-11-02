@@ -1,7 +1,7 @@
 module BasicParser where
 
 import Control.Applicative ( Alternative(..) )
-import Data.Char ( isDigit, isNumber )
+import Data.Char ( isDigit, isNumber, isSpace )
 import Text.Read ( readMaybe )
 
 data Parser a = Parser {
@@ -41,11 +41,11 @@ instance Monad Parser where
                                     (Just val, lo) -> parse (f val) lo
                                     (Nothing, lo) -> (Nothing, lo)
 
-char :: Parser Char
-char = charIf (const True)
+pChar :: Parser Char
+pChar = pCharIf (const True)
 
-charIf :: (Char -> Bool) -> Parser Char
-charIf predicate = Parser subParse
+pCharIf :: (Char -> Bool) -> Parser Char
+pCharIf predicate = Parser subParse
     where
         subParse :: String -> (Maybe Char, String)
         subParse [] = (Nothing, "")
@@ -53,12 +53,15 @@ charIf predicate = Parser subParse
             | predicate c = (Just c, cs)
             | otherwise = (Nothing, c:cs)
 
-digit :: Parser Char
-digit = charIf isDigit
+pUntil :: (Char -> Bool) -> Parser String
+pUntil predicate = many $ pCharIf (not . predicate)
 
-int :: Parser Int
-int = (charIf (== '-') >> (negate . read <$> some digit))
-    <|> read <$> some digit
+pDigit :: Parser Char
+pDigit = pCharIf isDigit
+
+pInt :: Parser Int
+pInt = (pCharIf (== '-') >> (negate . read <$> some pDigit))
+    <|> read <$> some pDigit
 
 unMaybe :: Parser (Maybe a) -> Parser a
 unMaybe p = Parser $ \x -> case parse p x of
@@ -66,13 +69,21 @@ unMaybe p = Parser $ \x -> case parse p x of
                                 (Just Nothing, lo) -> (Nothing, lo)
                                 (Nothing, lo) -> (Nothing, lo)
 
-float :: Parser Float
-float = 
-    (charIf (== '-') >> (negate <$> unMaybe floating))
-    <|> (charIf (== '+') >> unMaybe floating)
+pFloat :: Parser Float
+pFloat =
+    (pCharIf (== '-') >> (negate <$> unMaybe floating))
+    <|> (pCharIf (== '+') >> unMaybe floating)
     <|> unMaybe floating
     where
         floating :: Parser (Maybe Float)
         floating = do
-            value <- many $ charIf (\x -> isNumber x || x == '.')
+            value <- many $ pCharIf (\x -> isNumber x || x == '.')
             return $ readMaybe value
+
+tokenify :: Parser a -> Parser a
+tokenify input =
+    do
+        many $ pCharIf isSpace
+        ret <- input
+        many $ pCharIf isSpace
+        return ret
