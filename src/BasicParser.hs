@@ -54,14 +54,17 @@ pCharIf predicate = Parser subParse
             | otherwise = (Nothing, c:cs)
 
 pUntil :: (Char -> Bool) -> Parser String
-pUntil predicate = many $ pCharIf (not . predicate)
+pUntil predicate = some $ pCharIf (not . predicate)
+
+pToken :: Parser String
+pToken = pUntil $ \x -> isSpace x || x == ')' || x == '('
 
 pDigit :: Parser Char
 pDigit = pCharIf isDigit
 
 pInt :: Parser Int
-pInt = (pCharIf (== '-') >> (negate . read <$> some pDigit))
-    <|> read <$> some pDigit
+pInt =  (pCharIf (== '-') >> negate <$> unMaybe (readMaybe <$> pToken))
+    <|> unMaybe (readMaybe <$> pToken)
 
 unMaybe :: Parser (Maybe a) -> Parser a
 unMaybe p = Parser $ \x -> case parse p x of
@@ -76,9 +79,7 @@ pFloat =
     <|> unMaybe floating
     where
         floating :: Parser (Maybe Float)
-        floating = do
-            value <- many $ pCharIf (\x -> isNumber x || x == '.')
-            return $ readMaybe value
+        floating = readMaybe <$> pToken
 
 tokenify :: Parser a -> Parser a
 tokenify input =

@@ -1,14 +1,19 @@
+module LispParser where
+
 import BasicParser
-import Expressions
-import Control.Applicative
-import Data.Char
+    ( Parser, pCharIf, pUntil, pInt, pFloat, tokenify, pToken )
+import Expressions ( SExpr(..), Atom(..) )
+import Control.Applicative ( Alternative(some, (<|>)) )
 
 pAtom :: Parser Atom
 pAtom =
     AInt <$> pInt <|>
     AFloat <$> pFloat <|>
     pCharIf (== '"') *> (AString <$> pUntil (== '"')) <* pCharIf (== '"') <|>
-    ASymbol <$> pUntil isSpace
+    ASymbol <$> pToken
 
 pSExpr :: Parser SExpr
 pSExpr = pCharIf (== '(') *> (SExpr <$> some (tokenify pAtom)) <* pCharIf (== ')')
+
+pLisp :: Parser [SExpr]
+pLisp = some $ tokenify pSExpr
