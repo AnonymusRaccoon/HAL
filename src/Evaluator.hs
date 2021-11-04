@@ -3,9 +3,10 @@ import Expressions
 
 eval :: Statement -> LispEnv -> Either String (String, LispEnv)
 eval (Expr expr) env = evalS expr env
-eval (Atom (ASymbol symb)) env = case getSymbolValue symb env of
-                                      Just v  -> Right (show v, env)
-                                      Nothing -> Left $ "**Error: Variable not bound " ++ symb ++ "**"
+eval (Atom (ASymbol symb)) env =
+    case getSymbolValue symb env of
+         Just v  -> Right (show v, env)
+         Nothing -> Left $ "**Error: Variable not bound " ++ symb ++ "**"
 eval (Atom atom) env = Right (show atom, env)
 
 getSymbolValue :: String ->  LispEnv -> Maybe Atom
