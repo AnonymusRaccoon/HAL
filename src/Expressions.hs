@@ -19,4 +19,6 @@ instance Show Atom where
 instance Show SExpr where
     show (SExpr expr) = "(" ++ unwords (show <$> expr) ++ ")"
 
+data Statement = Expr SExpr | Atom Atom
+
 type LispEnv = [(String, Atom)]

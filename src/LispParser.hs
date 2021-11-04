@@ -2,7 +2,7 @@ module LispParser where
 
 import BasicParser
     ( Parser, pCharIf, pUntil, pInt, pFloat, tokenify, pToken )
-import Expressions ( SExpr(..), Atom(..) )
+import Expressions ( SExpr(..), Atom(..), Statement(..) )
 import Control.Applicative ( Alternative(some, (<|>)) )
 
 pAtom :: Parser Atom
@@ -14,6 +14,9 @@ pAtom =
 
 pSExpr :: Parser SExpr
 pSExpr = pCharIf (== '(') *> (SExpr <$> some (tokenify pAtom)) <* pCharIf (== ')')
+
+pStatement :: Parser Statement
+pStatement = Expr <$> pSExpr <|> Atom <$> pAtom
 
 pLisp :: Parser [SExpr]
 pLisp = some $ tokenify pSExpr

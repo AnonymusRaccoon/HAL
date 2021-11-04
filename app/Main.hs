@@ -22,7 +22,7 @@ main = runInputT defaultSettings (loop $ [])
         
         evalInput :: String -> LispEnv -> InputT IO LispEnv
         evalInput input env =
-            case parse pSExpr input of
+            case parse pStatement input of
                  (Just res, []) ->
                      case eval res env of
                           (Right (str, env)) -> outputStrLn str >> return env
