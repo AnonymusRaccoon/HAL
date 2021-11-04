@@ -25,7 +25,7 @@ main = runInputT defaultSettings (loop $ [])
             case parse pStatement input of
                  (Just res, []) ->
                      case eval res env of
-                          (Right (str, env)) -> outputStrLn str >> return env
+                          (Right (str, env)) -> outputStrLn (show str) >> return env
                           (Left err) -> outputStrLn err >> return env
                  (_, lo) -> outputStrLn ("**Error: Invalid syntax near: " ++ lo ++ "**")
                             >> return env

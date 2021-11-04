@@ -13,7 +13,7 @@ pAtom =
     ASymbol <$> pToken
 
 pSExpr :: Parser SExpr
-pSExpr = pCharIf (== '(') *> (SExpr <$> some (tokenify pAtom)) <* pCharIf (== ')')
+pSExpr = pCharIf (== '(') *> (SExpr <$> some (tokenify pStatement)) <* pCharIf (== ')')
 
 pStatement :: Parser Statement
 pStatement = Expr <$> pSExpr <|> Atom <$> pAtom
