@@ -4,7 +4,8 @@ data Atom =
     AInt Int |
     ASymbol String |
     AString String |
-    AFloat Float
+    AFloat Float |
+    ANil
 
 newtype SExpr = SExpr [Atom]
 
@@ -13,6 +14,9 @@ instance Show Atom where
     show (ASymbol symb) = symb
     show (AString str) = "\"" ++ str ++ "\""
     show (AFloat float) = show float
+    show ANil = "nil"
 
 instance Show SExpr where
     show (SExpr expr) = "(" ++ show expr ++ ")"
+
+newtype LispEnv = LispEnv [(String, Atom)]

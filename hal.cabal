@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       BasicParser
+      Evaluator
       Expressions
       Lib
       LispParser
