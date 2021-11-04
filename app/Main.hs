@@ -13,7 +13,7 @@ main = runInputT defaultSettings (loop $ [])
    where
         loop :: LispEnv -> InputT IO ()
         loop env = do
-            minput <- getInputLine " > "
+            minput <- getInputLine "> "
             case minput of
                 Nothing -> return ()
                 Just "exit" -> return ()

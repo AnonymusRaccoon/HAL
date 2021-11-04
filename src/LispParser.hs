@@ -4,6 +4,7 @@ import BasicParser
     ( Parser, pCharIf, pUntil, pInt, pFloat, tokenify, pToken, pString )
 import Expressions ( SExpr(..), Atom(..), Statement(..) )
 import Control.Applicative ( Alternative(some, (<|>)) )
+import Debug.Trace
 
 _pAtom :: Parser Atom
 _pAtom = AInt <$> pInt
@@ -28,8 +29,25 @@ pAtom = (pCharIf (== '\'') *> pQuotedAtom)
 --          but I believe that this is not really a feature.
 pQuotedAtom :: Parser Atom
 pQuotedAtom = ANil <$ pString "()"
-          <|> pCharIf (== '\'') *> ((\x -> ACons (ASymbol "quote") (ACons x ANil)) <$> pQuotedAtom)
+          <|> pCharIf (== '\'') *>
+                ((\x -> ACons (ASymbol "quote") (ACons x ANil)) <$> pQuotedAtom)
+          <|> pCharIf (== '(') *> pConsReadExpr <*pCharIf (== ')')
           <|> AQuote <$> _pAtom
+
+pConsReadExpr :: Parser Atom
+pConsReadExpr =
+    do
+        fs <- tokenify pQuotedAtom
+        se <- tokenify pConsReadExpr
+        return $ ACons fs se
+    <|> do
+        fs <- tokenify pQuotedAtom
+        tokenify $ pCharIf (== '.')
+        se <- tokenify pQuotedAtom
+        return $ ACons fs se
+    <|> do
+        fs <- tokenify pQuotedAtom
+        return $ ACons fs ANil
 
 pSExpr :: Parser SExpr
 pSExpr = pCharIf (== '(') *> (SExpr <$> some (tokenify pStatement)) <* pCharIf (== ')')

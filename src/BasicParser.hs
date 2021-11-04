@@ -1,7 +1,7 @@
 module BasicParser where
 
 import Control.Applicative ( Alternative(..) )
-import Data.Char ( isDigit, isNumber, isSpace )
+import Data.Char ( isDigit, isNumber, isSpace, isAlphaNum )
 import Text.Read ( readMaybe )
 
 data Parser a = Parser {
@@ -64,7 +64,7 @@ pString (x:xs) = do
 pString [] = pure ""
 
 pToken :: Parser String
-pToken = pUntil $ \x -> isSpace x || x == ')' || x == '('
+pToken = pUntil (not . isAlphaNum)
 
 pDigit :: Parser Char
 pDigit = pCharIf isDigit
