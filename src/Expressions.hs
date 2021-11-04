@@ -17,6 +17,6 @@ instance Show Atom where
     show ANil = "nil"
 
 instance Show SExpr where
-    show (SExpr expr) = "(" ++ show expr ++ ")"
+    show (SExpr expr) = "(" ++ unwords (show <$> expr) ++ ")"
 
-newtype LispEnv = LispEnv [(String, Atom)]
+type LispEnv = [(String, Atom)]

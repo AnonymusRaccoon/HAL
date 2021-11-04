@@ -9,7 +9,7 @@ import Expressions
 import Evaluator
 
 main :: IO ()
-main = runInputT defaultSettings (loop $ LispEnv [])
+main = runInputT defaultSettings (loop $ [])
    where
         loop :: LispEnv -> InputT IO ()
         loop env = do
@@ -23,7 +23,9 @@ main = runInputT defaultSettings (loop $ LispEnv [])
         evalInput :: String -> LispEnv -> InputT IO LispEnv
         evalInput input env =
             case parse pSExpr input of
-                 (Just res, []) -> let (str, env) = eval res env
-                                   in outputStrLn str >> return env
+                 (Just res, []) ->
+                     case eval res env of
+                          (Right (str, env)) -> outputStrLn str >> return env
+                          (Left err) -> outputStrLn err >> return env
                  (_, lo) -> outputStrLn ("**Error: Invalid syntax near: " ++ lo ++ "**")
                             >> return env

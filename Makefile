@@ -4,7 +4,7 @@ all: $(NAME)
 
 $(NAME):
 	stack build
-	mv `stack path --local-install-root`/bin/$(NAME)-exe $(NAME)
+	ln -fs `stack path --local-install-root`/bin/$(NAME)-exe $(NAME)
 
 clean:
 	stack clean
@@ -15,4 +15,4 @@ fclean:
 
 re: fclean all
 
-.PHONY = all clean fclean re $(NAME)
+.PHONY: all clean fclean re $(NAME)
