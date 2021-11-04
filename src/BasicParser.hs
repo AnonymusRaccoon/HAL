@@ -56,6 +56,13 @@ pCharIf predicate = Parser subParse
 pUntil :: (Char -> Bool) -> Parser String
 pUntil predicate = some $ pCharIf (not . predicate)
 
+pString :: String -> Parser String
+pString (x:xs) = do
+    c <- pCharIf (== x)
+    str <- pString xs
+    return (c:str)
+pString [] = pure ""
+
 pToken :: Parser String
 pToken = pUntil $ \x -> isSpace x || x == ')' || x == '('
 

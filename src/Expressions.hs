@@ -6,7 +6,8 @@ data Atom =
     AString String |
     AFloat Float |
     ACons Atom Atom |
-    ANil
+    ANil |
+    AQuote Atom
 
 newtype SExpr = SExpr [Statement]
 
@@ -15,7 +16,9 @@ instance Show Atom where
     show (ASymbol symb) = symb
     show (AString str) = "\"" ++ str ++ "\""
     show (AFloat float) = show float
-    show ANil = "nil"
+    show (AQuote atom) = show atom
+    show ANil = "()"
+    show (ACons (ASymbol "quote") (ACons fi ANil)) = "'" ++  show fi
     show (ACons fi se) = "(" ++  showCon fi se ++ ")"
         where
             showCon :: Atom -> Atom -> String
