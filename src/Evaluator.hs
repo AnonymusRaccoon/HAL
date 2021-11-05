@@ -28,6 +28,9 @@ evalS (SExpr ((Atom (AProcedure n dArgs body)):args)) env = do
     localEnv <- setupLocalVars dArgs args env
     evalS body localEnv
 evalS (SExpr ((Atom (ASymbol name)):xs)) env = evalSymbol name xs env
+evalS (SExpr (Expr nested:args)) env = do
+    (atom, nEnv) <- evalS nested env
+    evalS (SExpr (Atom atom:args)) nEnv
 evalS expr _ = Left $ "**Error: couldn't evaluate " ++ show expr ++ "**"
 
 evalSymbol :: String -> [Statement] -> LispEnv -> Either String (Atom, LispEnv)
@@ -53,7 +56,8 @@ showType v@AProcedure {} = "(Procedure " ++ show v ++ ")"
 setupLocalVars :: [String] -> [Statement] -> LispEnv -> Either String LispEnv
 setupLocalVars (n:names) (v:values) env = do
     (value, nEnv) <- eval v env
-    return ((n, value):nEnv)
+    rest <- setupLocalVars names values nEnv
+    return ((n, value):rest)
 setupLocalVars [] [] env = Right env
 setupLocalVars names [] env = Left "**Error: not enought arguments in procedure call**"
 setupLocalVars [] values env = Left "**Error: too many arguments in procedure call**"

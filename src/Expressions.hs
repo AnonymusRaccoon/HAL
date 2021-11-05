@@ -19,7 +19,7 @@ instance Show Atom where
     show (AFloat float) = show float
     show (AQuote atom) = show atom
     show (AProcedure [] _ _) = "#<procedure>"
-    show (AProcedure name _ _) = "#<procedure" ++ name ++ ">"
+    show (AProcedure name _ _) = "#<procedure " ++ name ++ ">"
     show ANil = "()"
     show (ACons (ASymbol "quote") (ACons fi ANil)) = "'" ++  show fi
     show (ACons fi se) = "(" ++  showCon fi se ++ ")"
