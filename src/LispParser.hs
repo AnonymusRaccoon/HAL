@@ -4,7 +4,6 @@ import BasicParser
     ( Parser, pCharIf, pUntil, pInt, pFloat, tokenify, pToken, pString )
 import Expressions ( SExpr(..), Atom(..), Statement(..) )
 import Control.Applicative ( Alternative(some, (<|>)) )
-import Debug.Trace
 
 _pAtom :: Parser Atom
 _pAtom = AInt <$> pInt
@@ -50,10 +49,17 @@ pConsReadExpr =
         return $ ACons fs ANil
 
 pSExpr :: Parser SExpr
-pSExpr = pCharIf (== '(') *> (SExpr <$> some (tokenify pStatement)) <* pCharIf (== ')')
+pSExpr = pCharIf (== '(')
+      *> (SExpr <$> some (tokenify pStatement))
+      <* pCharIf (== ')')
 
 pStatement :: Parser Statement
-pStatement = Expr <$> pSExpr <|> Atom <$> pAtom
+pStatement = pCharIf (== '(')
+               *> tokenify (pString "quote")
+               *> (Atom <$> tokenify pQuotedAtom)
+               <* pCharIf (== ')')
+         <|> Expr <$> pSExpr
+         <|> Atom <$> pAtom
 
-pLisp :: Parser [SExpr]
-pLisp = some $ tokenify pSExpr
+pLisp :: Parser [Statement]
+pLisp = some $ tokenify pStatement
