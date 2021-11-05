@@ -1,6 +1,5 @@
 module Main where
 
-import Lib
 import System.Console.Haskeline
     ( defaultSettings, getInputLine, outputStrLn, runInputT, InputT )
 import BasicParser

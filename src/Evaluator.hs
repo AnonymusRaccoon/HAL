@@ -21,6 +21,7 @@ evalS (SExpr [Atom (ASymbol "type"), x]) env = do
     return (AString $ showType atom, nEnv)
 evalS (SExpr ((Atom (ASymbol "define")):xs)) env = evalDefine xs env
 evalS (SExpr ((Atom (ASymbol "lambda")):xs)) env = evalLambda xs env
+evalS (SExpr ((Atom (ASymbol "let")):xs)) env = evalLet xs env
 evalS (SExpr ((Atom (ASymbol "cons")):xs)) env = evalCons xs env
 evalS (SExpr ((Atom (ASymbol "car")):xs)) env = evalCar xs env
 evalS (SExpr ((Atom (ASymbol "cdr")):xs)) env = evalCdr xs env
@@ -83,7 +84,21 @@ evalLambda :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalLambda [Expr (SExpr args), Expr body] env = do
     pArgs <- _toArgsList args
     return (AProcedure "" pArgs body, env)
-evalLambda args env = Left "**Error: invalid arguments to lambda.**"
+evalLambda _ _ = Left "**Error: invalid arguments to lambda.**"
+
+evalLet :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
+evalLet [Expr (SExpr vars), Expr body] env = do
+    nEnv <- evaluateVars vars env
+    evalS body nEnv
+    where
+        evaluateVars :: [Statement] -> LispEnv -> Either String LispEnv
+        evaluateVars (Expr (SExpr [Atom (ASymbol name), body]):xs) env = do
+            (atom, nEnv) <- eval body env
+            rest <- evaluateVars xs nEnv
+            return ((name, atom):rest)
+        evaluateVars [] env = Right env
+        evaluateVars (x:_) env = Left $ "**Error: invalid variable definition" ++ show x ++ " in let.**"
+evalLet _ _ = Left "**Error: invalid syntax for let.**"
 
 evalCons :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalCons [first, second] env = do
