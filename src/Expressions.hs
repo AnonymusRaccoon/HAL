@@ -8,7 +8,8 @@ data Atom =
     ACons Atom Atom |
     ANil |
     AQuote Atom |
-    AProcedure String [String] SExpr
+    AProcedure String [String] SExpr |
+    ABuiltin String ([Statement] -> LispEnv -> Either String (Atom, LispEnv))
 
 newtype SExpr = SExpr [Statement]
 
@@ -20,6 +21,7 @@ instance Show Atom where
     show (AQuote atom) = show atom
     show (AProcedure [] _ _) = "#<procedure>"
     show (AProcedure name _ _) = "#<procedure " ++ name ++ ">"
+    show (ABuiltin name _) = "#<procedure " ++ name ++ ">"
     show ANil = "()"
     show (ACons (ASymbol "quote") (ACons fi ANil)) = "'" ++  show fi
     show (ACons fi se) = "(" ++  showCon fi se ++ ")"

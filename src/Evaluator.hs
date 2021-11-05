@@ -22,12 +22,10 @@ evalS (SExpr [Atom (ASymbol "type"), x]) env = do
 evalS (SExpr ((Atom (ASymbol "define")):xs)) env = evalDefine xs env
 evalS (SExpr ((Atom (ASymbol "lambda")):xs)) env = evalLambda xs env
 evalS (SExpr ((Atom (ASymbol "let")):xs)) env = evalLet xs env
-evalS (SExpr ((Atom (ASymbol "cons")):xs)) env = evalCons xs env
-evalS (SExpr ((Atom (ASymbol "car")):xs)) env = evalCar xs env
-evalS (SExpr ((Atom (ASymbol "cdr")):xs)) env = evalCdr xs env
 evalS (SExpr ((Atom (AProcedure n dArgs body)):args)) env = do
     localEnv <- setupLocalVars dArgs args env
     evalS body localEnv
+evalS (SExpr ((Atom (ABuiltin n func)):args)) env = func args env
 evalS (SExpr ((Atom (ASymbol name)):xs)) env = evalSymbol name xs env
 evalS (SExpr (Expr nested:args)) env = do
     (atom, nEnv) <- evalS nested env
@@ -37,6 +35,7 @@ evalS expr _ = Left $ "**Error: couldn't evaluate " ++ show expr ++ "**"
 evalSymbol :: String -> [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalSymbol name args env = 
     case getSymbolValue name env of
+         (Just (ABuiltin n func)) -> func args env
          (Just (AProcedure n dArgs body)) -> do
              nEnv <- setupLocalVars dArgs args env
              evalS body nEnv
@@ -53,6 +52,7 @@ showType (AFloat v)      = "(Float " ++ show v ++ ")"
 showType ANil            = "(Nil)"
 showType v@(ACons _ _)   = "(Cons " ++ show v ++ ")"
 showType v@AProcedure {} = "(Procedure " ++ show v ++ ")"
+showType v@ABuiltin {}   = "(Builtin " ++ show v ++ ")"
 
 setupLocalVars :: [String] -> [Statement] -> LispEnv -> Either String LispEnv
 setupLocalVars (n:names) (v:values) env = do
@@ -99,30 +99,3 @@ evalLet [Expr (SExpr vars), Expr body] env = do
         evaluateVars [] env = Right env
         evaluateVars (x:_) env = Left $ "**Error: invalid variable definition" ++ show x ++ " in let.**"
 evalLet _ _ = Left "**Error: invalid syntax for let.**"
-
-evalCons :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
-evalCons [first, second] env = do
-    (fAtom, fEnv) <- eval first env
-    (sAtom, sEnv) <- eval second fEnv
-    return (ACons fAtom sAtom, sEnv)
-evalCons args _ = Left $ "**Error: cons expect 2 arguments. " ++ show (length args) ++ " where found.**"
-
-evalCar :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
-evalCar [Atom (ACons f _)] env = Right (f, env)
-evalCar [Expr expr] env = do
-    (atom, nEnv) <- evalS expr env
-    case atom of
-        (ACons f _) -> return (f, nEnv)
-        atom        -> Left $ "**Error: " ++ show atom ++ " is not a pair.**"
-evalCar [Atom bad] _ = Left $ "**Error: " ++ show bad ++ " is not a pair.**"
-evalCar _ _ = Left "**Error: incorect argument count in car**"
-
-evalCdr :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
-evalCdr [Atom (ACons _ s)] env = Right (s, env)
-evalCdr [Expr expr] env = do
-    (atom, nEnv) <- evalS expr env
-    case atom of
-        (ACons _ s) -> return (s, nEnv)
-        atom        -> Left $ "**Error: " ++ show atom ++ " is not a pair.**"
-evalCdr [Atom bad] _ = Left $ "**Error: " ++ show bad ++ " is not a pair.**"
-evalCdr _ _ = Left "**Error: incorect argument count in cdr**"

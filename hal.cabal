@@ -28,6 +28,7 @@ library
       BasicParser
       Evaluator
       Expressions
+      LispEnv
       LispParser
   other-modules:
       Paths_hal

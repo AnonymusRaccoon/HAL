@@ -6,9 +6,10 @@ import BasicParser
 import LispParser
 import Expressions
 import Evaluator
+import LispEnv
 
 main :: IO ()
-main = runInputT defaultSettings (loop $ [])
+main = runInputT defaultSettings (loop defaultEnv)
    where
         loop :: LispEnv -> InputT IO ()
         loop env = do
