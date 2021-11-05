@@ -16,18 +16,70 @@ getSymbolValue symbol ((key, value):xs)
 getSymbolValue _ [] = Nothing
 
 evalS :: SExpr -> LispEnv -> Either String (Atom, LispEnv)
+evalS (SExpr [Atom (ASymbol "type"), x]) env = do
+    (atom, nEnv) <- eval x env
+    return (AString $ showType atom, nEnv)
 evalS (SExpr ((Atom (ASymbol "define")):xs)) env = evalDefine xs env
+evalS (SExpr ((Atom (ASymbol "lambda")):xs)) env = evalLambda xs env
 evalS (SExpr ((Atom (ASymbol "cons")):xs)) env = evalCons xs env
 evalS (SExpr ((Atom (ASymbol "car")):xs)) env = evalCar xs env
 evalS (SExpr ((Atom (ASymbol "cdr")):xs)) env = evalCdr xs env
+evalS (SExpr ((Atom (AProcedure n dArgs body)):args)) env = do
+    localEnv <- setupLocalVars dArgs args env
+    evalS body localEnv
+evalS (SExpr ((Atom (ASymbol name)):xs)) env = evalSymbol name xs env
 evalS expr _ = Left $ "**Error: couldn't evaluate " ++ show expr ++ "**"
+
+evalSymbol :: String -> [Statement] -> LispEnv -> Either String (Atom, LispEnv)
+evalSymbol name args env = 
+    case getSymbolValue name env of
+         (Just (AProcedure n dArgs body)) -> do
+             nEnv <- setupLocalVars dArgs args env
+             evalS body nEnv
+         (Just (ASymbol symb)) -> evalSymbol symb args env
+         (Just atom) -> Left $ "**Error: " ++ show atom ++ " is not a procedure.**"
+         Nothing -> Left $ "**Error: Variable not bound " ++ name ++ "**"
+
+showType :: Atom -> String
+showType (AQuote v)      = "(Quote" ++ show v ++ ")"
+showType (AString v)     = "(String " ++ v ++ ")"
+showType (ASymbol v)     = "(Symbol " ++ v ++ ")"
+showType (AInt v)        = "(Int " ++ show v ++ ")"
+showType (AFloat v)      = "(Float " ++ show v ++ ")"
+showType ANil            = "(Nil)"
+showType v@(ACons _ _)   = "(Cons " ++ show v ++ ")"
+showType v@AProcedure {} = "(Procedure " ++ show v ++ ")"
+
+setupLocalVars :: [String] -> [Statement] -> LispEnv -> Either String LispEnv
+setupLocalVars (n:names) (v:values) env = do
+    (value, nEnv) <- eval v env
+    return ((n, value):nEnv)
+setupLocalVars [] [] env = Right env
+setupLocalVars names [] env = Left "**Error: not enought arguments in procedure call**"
+setupLocalVars [] values env = Left "**Error: too many arguments in procedure call**"
+
+_toArgsList :: [Statement] -> Either String [String]
+_toArgsList (Atom (ASymbol x):xs) = do
+    rest <- _toArgsList xs
+    return $ x:rest
+_toArgsList (x:xs) = Left $ "**Error: " ++ show x ++ " is not a valid argument.**"
+_toArgsList [] = Right []
 
 evalDefine :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalDefine [Atom at@(ASymbol symbol), lo] env = do
     (atom, nEnv) <- eval lo env
     return (at, (symbol, atom):nEnv)
-evalDefine [_, _] _ = Left "**Error: the first argument of define must be a symbol.**"
+evalDefine [Expr (SExpr (Atom (ASymbol name):args)), Expr body] env = do
+    pArgs <- _toArgsList args
+    return (ASymbol name, (name, AProcedure name pArgs body):env)
+evalDefine [_, _] _ = Left "**Error: the first argument of define must be a symbol or a list.**"
 evalDefine args _ = Left $ "**Error: define expect 2 arguments. " ++ show (length args) ++ " where found.**"
+
+evalLambda :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
+evalLambda [Expr (SExpr args), Expr body] env = do
+    pArgs <- _toArgsList args
+    return (AProcedure "" pArgs body, env)
+evalLambda args env = Left "**Error: invalid arguments to lambda.**"
 
 evalCons :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalCons [first, second] env = do

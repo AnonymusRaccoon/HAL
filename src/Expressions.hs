@@ -7,7 +7,8 @@ data Atom =
     AFloat Float |
     ACons Atom Atom |
     ANil |
-    AQuote Atom
+    AQuote Atom |
+    AProcedure String [String] SExpr
 
 newtype SExpr = SExpr [Statement]
 
@@ -17,6 +18,8 @@ instance Show Atom where
     show (AString str) = "\"" ++ str ++ "\""
     show (AFloat float) = show float
     show (AQuote atom) = show atom
+    show (AProcedure [] _ _) = "#<procedure>"
+    show (AProcedure name _ _) = "#<procedure" ++ name ++ ">"
     show ANil = "()"
     show (ACons (ASymbol "quote") (ACons fi ANil)) = "'" ++  show fi
     show (ACons fi se) = "(" ++  showCon fi se ++ ")"
