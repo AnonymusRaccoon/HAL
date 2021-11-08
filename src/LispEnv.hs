@@ -8,7 +8,8 @@ defaultEnv = [
         ("cons", ABuiltin "cons" evalCons),
         ("car", ABuiltin "car" evalCar),
         ("cdr", ABuiltin "cdr" evalCdr),
-        ("eq?", ABuiltin "eq?" evalEq)
+        ("eq?", ABuiltin "eq?" evalEq),
+        ("atom?", ABuiltin "atom?" evalAtom)
     ]
 
 evalCons :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
@@ -61,4 +62,13 @@ evalEq [other, Expr exp] env = do
     evalEq [Atom first, other] nEnv
 evalEq [Atom (AQuote quoted), other] env = evalEq [Atom quoted, other] env
 evalEq [other, Atom (AQuote quoted)] env = evalEq [Atom quoted, other] env
-evalEq _ _ = Left "**Error: Invalid arguments in eq?"
+evalEq _ _ = Left "**Error: Invalid arguments in eq?**"
+
+evalAtom :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
+evalAtom [Atom (ACons _ _)] env = Right (ANil, env)
+evalAtom [Atom (AQuote quoted)] env = evalAtom [Atom quoted] env
+evalAtom [Expr expr] env = do
+    (atm, nEnv) <- evalS expr env
+    evalAtom [Atom atm] nEnv
+evalAtom [Atom _] env = Right (ATrue, env)
+evalAtom _ _ = Left "**Error: Invalid arguments in atom?**"
