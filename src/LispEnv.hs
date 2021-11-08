@@ -41,11 +41,6 @@ evalCdr [Expr expr] env = do
 evalCdr [Atom bad] _ = Left $ "**Error: " ++ show bad ++ " is not a pair.**"
 evalCdr _ _ = Left "**Error: incorect argument count in cdr**"
 
-
-_fromBool :: Bool -> Atom
-_fromBool True  = ATrue
-_fromBool False = AFalse
-
 evalEq :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalEq [Atom (AInt f), Atom (AInt s)] env = Right (_fromBool (f == s), env)
 evalEq [Atom (ASymbol f), Atom (ASymbol s)] env = Right (_fromBool (f == s), env)

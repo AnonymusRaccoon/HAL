@@ -8,7 +8,8 @@ mathEnv = [
         ("-", ABuiltin "-" evalMinus),
         ("*", ABuiltin "*" evalMult),
         ("div", ABuiltin "div" evalDiv),
-        ("mod", ABuiltin "mod" evalMod)
+        ("mod", ABuiltin "mod" evalMod),
+        ("<", ABuiltin "<" evalLessThan)
     ]
 
 evalPlus :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
@@ -73,3 +74,16 @@ evalMod [other, Expr expr] env = do
     (res, nEnv) <- evalS expr env
     evalMod [other, Atom res] nEnv
 evalMod _ _ = Left "**Error: Invalid arguments in mod.**"
+
+evalLessThan :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
+evalLessThan [Atom (AInt f), Atom (AInt s)] env = Right (_fromBool (f < s), env)
+evalLessThan [Atom (AFloat f), Atom (AFloat s)] env = Right (_fromBool (f < s), env)
+evalLessThan [Atom (AFloat f), Atom (AInt s)] env = Right (_fromBool (f < fromIntegral s), env)
+evalLessThan [Atom (AInt f), Atom (AFloat s)] env = Right (_fromBool (fromIntegral f < s), env)
+evalLessThan [Expr expr, other] env = do
+    (res, nEnv) <- evalS expr env
+    evalLessThan [Atom res, other] nEnv
+evalLessThan [other, Expr expr] env = do
+    (res, nEnv) <- evalS expr env
+    evalLessThan [other, Atom res] nEnv
+evalLessThan _ _ = Left "**Error: Invalid arguments in <.**"

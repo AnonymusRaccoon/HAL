@@ -14,6 +14,10 @@ data Atom =
     AFalse |
     ANothing
 
+_fromBool :: Bool -> Atom
+_fromBool True  = ATrue
+_fromBool False = AFalse
+
 newtype SExpr = SExpr [Statement]
 
 instance Show Atom where
