@@ -4,9 +4,9 @@ import System.Console.Haskeline
     ( defaultSettings, getInputLine, outputStrLn, runInputT, InputT )
 import BasicParser
 import LispParser
-import Expressions
 import Evaluator
 import LispEnv
+import Expressions
 
 main :: IO ()
 main = runInputT defaultSettings (loop defaultEnv)
@@ -25,7 +25,8 @@ main = runInputT defaultSettings (loop defaultEnv)
             case parse pStatement input of
                  (Just res, []) ->
                      case eval res env of
-                          (Right (str, env)) -> outputStrLn (show str) >> return env
+                          (Right (ANothing, env)) -> return env
+                          (Right (at, env)) -> outputStrLn (show at) >> return env
                           (Left err) -> outputStrLn err >> return env
                  (_, lo) -> outputStrLn ("**Error: Invalid syntax near: " ++ lo ++ "**")
                             >> return env

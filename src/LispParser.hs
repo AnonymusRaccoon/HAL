@@ -9,6 +9,7 @@ _pAtom :: Parser Atom
 _pAtom = AInt <$> pInt
      <|> AFloat <$> pFloat
      <|> ATrue <$ pString "#t"
+     <|> AFalse <$ pString "#f"
      <|> pCharIf (== '"') *> (AString <$> pUntil (== '"')) <* pCharIf (== '"')
      <|> ANil <$ pString "nil"
      <|> ASymbol <$> pToken

@@ -10,12 +10,16 @@ data Atom =
     AQuote Atom |
     AProcedure String [String] SExpr |
     ABuiltin String ([Statement] -> LispEnv -> Either String (Atom, LispEnv)) |
-    ATrue
+    ATrue |
+    AFalse |
+    ANothing
 
 newtype SExpr = SExpr [Statement]
 
 instance Show Atom where
     show ATrue = "#t"
+    show ANothing = ""
+    show AFalse = "#f"
     show (AInt int) = show int
     show (ASymbol symb) = symb
     show (AString str) = "\"" ++ str ++ "\""
