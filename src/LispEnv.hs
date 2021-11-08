@@ -1,6 +1,7 @@
 module LispEnv where
 import Expressions
 import Evaluator
+import Maths
 
 
 defaultEnv :: LispEnv
@@ -11,7 +12,7 @@ defaultEnv = [
         ("eq?", ABuiltin "eq?" evalEq),
         ("atom?", ABuiltin "atom?" evalAtom),
         ("cond", ABuiltin "cond" evalCond)
-    ]
+    ] ++ mathEnv
 
 evalCons :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalCons [first, second] env = do

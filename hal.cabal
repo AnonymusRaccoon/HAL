@@ -30,6 +30,7 @@ library
       Expressions
       LispEnv
       LispParser
+      Maths
   other-modules:
       Paths_hal
   hs-source-dirs:
