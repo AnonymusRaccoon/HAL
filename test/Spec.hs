@@ -12,9 +12,16 @@ charIfTest = "charIf isSpace ' 1 23'," ~: (Just ' ', "1 23") ~=? parse (pCharIf 
 charIfFailureTest :: Test
 charIfFailureTest = "charIf isSpace '1 23'," ~: (Nothing, "1 23") ~=? parse (pCharIf isSpace) "1 23"
 
+tokenDotTest :: Test
+tokenDotTest = "pToken \".\"" ~: (Nothing, ".") ~=? parse pToken "."
+
+tokenSpaceTest :: Test
+tokenSpaceTest = "pToken \"1 2\"" ~: (Just "1", " 2") ~=? parse pToken "1 2"
+
 tests :: Test
 tests = TestList [
-        TestLabel "Basic parser" charTest, charIfTest, charIfFailureTest
+        TestLabel "Basic parser" charTest, charIfTest, charIfFailureTest,
+        TestLabel "Token parser" tokenDotTest, tokenSpaceTest
     ]
 
 main :: IO ()

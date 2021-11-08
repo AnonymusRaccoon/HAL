@@ -64,7 +64,10 @@ pString (x:xs) = do
 pString [] = pure ""
 
 pToken :: Parser String
-pToken = pUntil (\x -> isSpace x || x == ')' || x == '(')
+pToken = Parser $ \x ->
+    case parse (pUntil (\x -> isSpace x || x == ')' || x == '(')) x of
+        (Just ".", lo) -> (Nothing, '.':lo)
+        ret -> ret
 
 pDigit :: Parser Char
 pDigit = pCharIf isDigit
