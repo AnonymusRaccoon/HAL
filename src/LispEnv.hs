@@ -62,9 +62,9 @@ evalEq [Expr exp, other] env = do
     evalEq [Atom first, other] nEnv
 evalEq [other, Expr exp] env = do
     (first, nEnv) <- evalS exp env
-    evalEq [Atom first, other] nEnv
+    evalEq [other, Atom first] nEnv
 evalEq [Atom (AQuote quoted), other] env = evalEq [Atom quoted, other] env
-evalEq [other, Atom (AQuote quoted)] env = evalEq [Atom quoted, other] env
+evalEq [other, Atom (AQuote quoted)] env = evalEq [other, Atom quoted] env
 evalEq _ _ = Left "**Error: Invalid arguments in eq?**"
 
 evalAtom :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
