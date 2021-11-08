@@ -9,11 +9,13 @@ data Atom =
     ANil |
     AQuote Atom |
     AProcedure String [String] SExpr |
-    ABuiltin String ([Statement] -> LispEnv -> Either String (Atom, LispEnv))
+    ABuiltin String ([Statement] -> LispEnv -> Either String (Atom, LispEnv)) |
+    ATrue
 
 newtype SExpr = SExpr [Statement]
 
 instance Show Atom where
+    show ATrue = "#t"
     show (AInt int) = show int
     show (ASymbol symb) = symb
     show (AString str) = "\"" ++ str ++ "\""

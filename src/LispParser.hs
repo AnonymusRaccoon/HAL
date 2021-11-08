@@ -8,6 +8,7 @@ import Control.Applicative ( Alternative(some, (<|>)) )
 _pAtom :: Parser Atom
 _pAtom = AInt <$> pInt
      <|> AFloat <$> pFloat
+     <|> ATrue <$ pString "#t"
      <|> pCharIf (== '"') *> (AString <$> pUntil (== '"')) <* pCharIf (== '"')
      <|> ANil <$ pString "nil"
      <|> ASymbol <$> pToken

@@ -53,6 +53,7 @@ showType ANil            = "(Nil)"
 showType v@(ACons _ _)   = "(Cons " ++ show v ++ ")"
 showType v@AProcedure {} = "(Procedure " ++ show v ++ ")"
 showType v@ABuiltin {}   = "(Builtin " ++ show v ++ ")"
+showType ATrue           = "(True #t)"
 
 setupLocalVars :: [String] -> [Statement] -> LispEnv -> Either String LispEnv
 setupLocalVars (n:names) (v:values) env = do

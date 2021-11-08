@@ -64,7 +64,7 @@ pString (x:xs) = do
 pString [] = pure ""
 
 pToken :: Parser String
-pToken = pUntil (not . isAlphaNum)
+pToken = pUntil (\x -> isSpace x || x == ')' || x == '(')
 
 pDigit :: Parser Char
 pDigit = pCharIf isDigit
