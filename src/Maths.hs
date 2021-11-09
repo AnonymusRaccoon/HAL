@@ -51,7 +51,7 @@ evalMult [] env = Right (AInt 1, env)
 evalDiv :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalDiv [_, Atom (AInt 0)] env = Left "**Error: Division by 0 is undefined.**"
 evalDiv [_, Atom (AFloat 0)] env = Left "**Error: Division by 0 is undefined.**"
-evalDiv [Atom (AInt f), Atom (AInt s)] env = Right (AInt (f `div` s), env)
+evalDiv [Atom (AInt f), Atom (AInt s)] env = Right (AInt (f `quot` s), env)
 evalDiv [Atom (AFloat f), Atom (AFloat s)] env = Right (AFloat (f / s), env)
 evalDiv [Atom (AFloat f), Atom (AInt s)] env = Right (AFloat (f / fromIntegral s), env)
 evalDiv [Atom (AInt f), Atom (AFloat s)] env = Right (AFloat (fromIntegral f / s), env)
