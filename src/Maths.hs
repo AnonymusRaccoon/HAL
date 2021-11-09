@@ -65,4 +65,4 @@ evalLessThan [AInt f, AInt s] env = Right (_fromBool (f < s), env)
 evalLessThan [AFloat f, AFloat s] env = Right (_fromBool (f < s), env)
 evalLessThan [AFloat f, AInt s] env = Right (_fromBool (f < fromIntegral s), env)
 evalLessThan [AInt f, AFloat s] env = Right (_fromBool (fromIntegral f < s), env)
-evalLessThan _ _ = Left "**Error: Invalid arguments in <.**"
+evalLessThan args _ = Left $ "**Error: Invalid arguments (" ++ unwords (showType <$> args) ++ ") in <.**"

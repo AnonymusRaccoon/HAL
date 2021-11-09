@@ -1,7 +1,7 @@
 module LispParser where
 
 import BasicParser
-    ( Parser, pCharIf, pUntil, pInt, pFloat, tokenify, pToken, pString )
+    ( Parser (Parser, parse), pCharIf, pUntil, pInt, pFloat, tokenify, pToken, pString )
 import Expressions ( SExpr(..), Atom(..), Statement(..) )
 import Control.Applicative ( Alternative(some, many, (<|>)) )
 
@@ -38,17 +38,23 @@ pQuotedAtom = ANil <$ pString "()"
 pConsReadExpr :: Parser Atom
 pConsReadExpr =
     do
-        fs <- tokenify pQuotedAtom
+        fs <- tokenify $ unquote pQuotedAtom
         se <- tokenify pConsReadExpr
         return $ ACons fs se
     <|> do
-        fs <- tokenify pQuotedAtom
+        fs <- tokenify $ unquote pQuotedAtom
         tokenify $ pCharIf (== '.')
-        se <- tokenify pQuotedAtom
+        se <- tokenify $ unquote pQuotedAtom
         return $ ACons fs se
     <|> do
-        fs <- tokenify pQuotedAtom
+        fs <- tokenify $ unquote pQuotedAtom
         return $ ACons fs ANil
+
+unquote :: Parser Atom -> Parser Atom
+unquote p = Parser $ \x -> 
+    case parse p x of
+         (Just (AQuote q), lo) -> (Just q, lo)
+         ret -> ret
 
 pSExpr :: Parser SExpr
 pSExpr = pCharIf (== '(')

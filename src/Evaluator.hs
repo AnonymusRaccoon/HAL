@@ -3,10 +3,12 @@ import Expressions
 
 eval :: Statement -> LispEnv -> Either String (Atom, LispEnv)
 eval (Expr expr) env = evalS expr env
+eval (Atom (ASymbol "env")) env = Right (AString $ unwords (fst <$> env), env)
 eval (Atom (ASymbol symb)) env =
     case getSymbolValue symb env of
          Just v  -> Right (v, env)
          Nothing -> Left $ "**Error: Variable not bound " ++ symb ++ "**"
+eval (Atom (AQuote quoted)) env = Right (quoted, env)
 eval (Atom atom) env = Right (atom, env)
 
 getSymbolValue :: String ->  LispEnv -> Maybe Atom
@@ -25,9 +27,13 @@ evalS (SExpr ((Atom (ASymbol "let")):xs)) env = evalLet xs env
 evalS (SExpr ((Atom (ASymbol "cond")):xs)) env = evalCond xs env
 evalS (SExpr ((Atom (AProcedure n dArgs body)):args)) env = do
     localEnv <- setupLocalVars dArgs args env
-    evalS body localEnv
+    (ret, _) <- evalS body localEnv
+    return (ret, env)
 evalS (SExpr ((Atom (ABuiltin n func)):args)) env = evalBuiltin func args env
-evalS (SExpr ((Atom (ASymbol name)):xs)) env = evalSymbol name xs env
+evalS (SExpr ((Atom (ASymbol name)):xs)) env = 
+    case getSymbolValue name env of
+         Just atom -> evalS (SExpr (Atom atom:xs)) env
+         Nothing   -> Left $ "**Error: Variable not bound " ++ name ++ "**"
 evalS (SExpr (Expr nested:args)) env = do
     (atom, nEnv) <- evalS nested env
     evalS (SExpr (Atom atom:args)) nEnv
@@ -58,7 +64,7 @@ evalBuiltin func args env = do
 
 
 showType :: Atom -> String
-showType (AQuote v)      = "(Quote" ++ show v ++ ")"
+showType (AQuote v)      = "(Quote " ++ show v ++ ")"
 showType (AString v)     = "(String " ++ v ++ ")"
 showType (ASymbol v)     = "(Symbol " ++ v ++ ")"
 showType (AInt v)        = "(Int " ++ show v ++ ")"
