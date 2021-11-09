@@ -1,5 +1,6 @@
 module Evaluator where
 import Expressions
+import Expressions (Atom(AProcedure))
 
 eval :: Statement -> LispEnv -> Either String (Atom, LispEnv)
 eval (Expr expr) env = evalS expr env
@@ -22,10 +23,11 @@ evalS (SExpr [Atom (ASymbol "type"), x]) env = do
 evalS (SExpr ((Atom (ASymbol "define")):xs)) env = evalDefine xs env
 evalS (SExpr ((Atom (ASymbol "lambda")):xs)) env = evalLambda xs env
 evalS (SExpr ((Atom (ASymbol "let")):xs)) env = evalLet xs env
+evalS (SExpr ((Atom (ASymbol "cond")):xs)) env = evalCond xs env
 evalS (SExpr ((Atom (AProcedure n dArgs body)):args)) env = do
     localEnv <- setupLocalVars dArgs args env
     evalS body localEnv
-evalS (SExpr ((Atom (ABuiltin n func)):args)) env = func args env
+evalS (SExpr ((Atom (ABuiltin n func)):args)) env = func (eval <$> args) env
 evalS (SExpr ((Atom (ASymbol name)):xs)) env = evalSymbol name xs env
 evalS (SExpr (Expr nested:args)) env = do
     (atom, nEnv) <- evalS nested env
@@ -35,7 +37,7 @@ evalS expr _ = Left $ "**Error: couldn't evaluate " ++ show expr ++ "**"
 evalSymbol :: String -> [Statement] -> LispEnv -> Either String (Atom, LispEnv)
 evalSymbol name args env = 
     case getSymbolValue name env of
-         (Just (ABuiltin n func)) -> func args env
+         (Just (ABuiltin n func)) -> evalBuiltin func args env
          (Just (AProcedure n dArgs body)) -> do
              nEnv <- setupLocalVars dArgs args env
              evalS body nEnv
@@ -102,3 +104,12 @@ evalLet [Expr (SExpr vars), Expr body] env = do
         evaluateVars [] env = Right env
         evaluateVars (x:_) env = Left $ "**Error: invalid variable definition" ++ show x ++ " in let.**"
 evalLet _ _ = Left "**Error: invalid syntax for let.**"
+
+evalCond :: [Statement] -> LispEnv -> Either String (Atom, LispEnv)
+evalCond (Expr (SExpr [cond, value]):xs) env = do
+    (res, nEnv) <- eval cond env
+    case res of
+         AFalse -> evalCond xs nEnv
+         _ -> eval value nEnv
+evalCond [] env = Right (ANothing, env)
+evalCond _ _ = Left "**Error: Invalid syntax for cond.**"

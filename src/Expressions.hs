@@ -1,5 +1,7 @@
 module Expressions where
 
+type ProcedureFunc = [Atom] -> LispEnv -> Either String (Atom, LispEnv)
+
 data Atom =
     AInt Int |
     ASymbol String |
@@ -9,7 +11,7 @@ data Atom =
     ANil |
     AQuote Atom |
     AProcedure String [String] SExpr |
-    ABuiltin String ([Statement] -> LispEnv -> Either String (Atom, LispEnv)) |
+    ABuiltin String ProcedureFunc |
     ATrue |
     AFalse |
     ANothing

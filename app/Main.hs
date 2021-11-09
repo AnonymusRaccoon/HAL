@@ -39,7 +39,7 @@ evalFiles [x] env = evalFile x env
 evalFiles (x:xs) env = do
     (ret, nEnv) <- evalFile x env
     evalFiles xs nEnv
-evalFiles [] env = undefined
+evalFiles [] env = Right (ANothing, env)
 
 evalFile :: String -> LispEnv -> Either String (Atom, LispEnv)
 evalFile file env =
@@ -60,8 +60,9 @@ main = do
     (args, repl) <- parseArgs <$> getArgs
     files <- catch (sequence $ readFile <$> args) handler
     case evalFiles files defaultEnv of
-         Right (ret, env) -> if repl then runRepl env else print ret
-         Left err         -> putStrLn err >> exitWith (ExitFailure 84)
+         Right (ANothing, env) -> if repl then runRepl env else exitSuccess
+         Right (ret, env)      -> if repl then runRepl env else print ret
+         Left err              -> putStrLn err >> exitWith (ExitFailure 84)
     where
         handler :: IOException -> IO [String]
         handler e = putStrLn ("Error: " ++ show e) >> exitWith (ExitFailure 84)
@@ -69,6 +70,7 @@ main = do
         parseArgs :: [String] -> ([String], Bool)
         parseArgs ("-i":xs) = let (files, _) = parseArgs xs
                               in (files, True)
+        parseArgs [x]       = ([x], False)
         parseArgs (x:xs)    = let (files, repl) = parseArgs xs
                               in (x:files, repl)
-        parseArgs []        = ([], False)
+        parseArgs []        = ([], True)
