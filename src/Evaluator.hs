@@ -1,6 +1,5 @@
 module Evaluator where
 import Expressions
-import Expressions (Atom(AProcedure))
 
 eval :: Statement -> LispEnv -> Either String (Atom, LispEnv)
 eval (Expr expr) env = evalS expr env
@@ -27,7 +26,7 @@ evalS (SExpr ((Atom (ASymbol "cond")):xs)) env = evalCond xs env
 evalS (SExpr ((Atom (AProcedure n dArgs body)):args)) env = do
     localEnv <- setupLocalVars dArgs args env
     evalS body localEnv
-evalS (SExpr ((Atom (ABuiltin n func)):args)) env = func (eval <$> args) env
+evalS (SExpr ((Atom (ABuiltin n func)):args)) env = evalBuiltin func args env
 evalS (SExpr ((Atom (ASymbol name)):xs)) env = evalSymbol name xs env
 evalS (SExpr (Expr nested:args)) env = do
     (atom, nEnv) <- evalS nested env
@@ -44,6 +43,19 @@ evalSymbol name args env =
          (Just (ASymbol symb)) -> evalSymbol symb args env
          (Just atom) -> Left $ "**Error: " ++ show atom ++ " is not a procedure.**"
          Nothing -> Left $ "**Error: Variable not bound " ++ name ++ "**"
+
+evalBuiltin :: ProcedureFunc -> [Statement] -> LispEnv -> Either String (Atom, LispEnv)
+evalBuiltin func args env = do
+    (nArgs, nEnv) <- evalArgs args env
+    func nArgs nEnv
+    where
+        evalArgs :: [Statement] -> LispEnv -> Either String ([Atom], LispEnv)
+        evalArgs (x:xs) env = do
+            (first, nEnv) <- eval x env
+            (lo, lEnv) <- evalArgs xs nEnv
+            return (first:lo, lEnv)
+        evalArgs [] env = pure ([], env)
+
 
 showType :: Atom -> String
 showType (AQuote v)      = "(Quote" ++ show v ++ ")"
