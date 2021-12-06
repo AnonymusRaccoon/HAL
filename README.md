@@ -25,5 +25,5 @@ A lisp interpreter in Haskell based on [Chez-Scheme](https://github.com/cisco/ch
 [FILES]: list of files to run. If -i is specified, the files are run before prompting the user
 
 ## Authors
- - [Zoe Roux](https://github.com/AnonymusRaccoon/HAL)
+ - [Zoe Roux](https://github.com/AnonymusRaccoon)
 
