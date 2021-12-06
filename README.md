@@ -21,6 +21,7 @@ A lisp interpreter in Haskell based on [Chez-Scheme](https://github.com/cisco/ch
 ``./hal [-i] [FILES]``
 
 -i: to use REPL feature
+
 [FILES]: list of files to run. If -i is specified, the files are run before prompting the user
 
 ## Authors
